@@ -23,4 +23,30 @@ public with sharing class AccountHandler {
             }
         }
     }
+
+
+    public static void updateRelatedContactsPhone(Map<Id, Account> newMap,
+                                             Map<Id, Account> oldMap){
+        Set<Id> accountIds = new Set<Id>();
+
+        for(Id accId : newMap.keySet()){
+            Account newAcc = newmap.get(accId);
+            Account oldAcc = oldMap.get(accId);
+            if(newAcc.Phone != oldAcc.Phone){
+                accountIds.add(newAcc.Id);
+            }
+        }
+
+        // Query All Contacts related to these accounts
+        List<Contact> contactsToUpdate = [select Id, AccountId, Phone from Contact
+                                                where AccountId IN : accountIds];
+        // Update phone number of all related contacts to match the account phone number
+        for(Contact con : contactsToUpdate){
+            con.Phone = newmap.get(con.AccountId).Phone;
+        }
+        
+        if(!contactsToUpdate.isEmpty()){
+            update contactsToUpdate;
+        }
+    }
 }
