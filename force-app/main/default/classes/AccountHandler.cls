@@ -49,4 +49,18 @@ public with sharing class AccountHandler {
             update contactsToUpdate;
         }
     }
+
+    public static void createChildContactForNewAccount(List<Account> accountList){
+        List<Contact> contactToInsert = new List<Contact>();
+        for(Account acc : accountList){
+            Contact con = new Contact(FirstName = acc.Name,
+                                    LastName = 'Contact',
+                                    AccountId = acc.Id);
+            contactToInsert.add(con);
+        }
+        
+        if(!contactToInsert.isEmpty()){
+            insert contactToInsert;
+        }
+    }
 }
