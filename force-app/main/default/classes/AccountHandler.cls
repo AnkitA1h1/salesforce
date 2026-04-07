@@ -63,4 +63,27 @@ public with sharing class AccountHandler {
             insert contactToInsert;
         }
     }
+
+    public static void UpdateRelatedContactActiveField(Map<Id,Account> newMap, Map<Id,Account> oldMap){
+        Set<Id> accountIds = new Set<Id>();
+
+        for(Account acc : newMap.values()){
+            Account oldAcc = oldMap.get(acc.Id);
+            if(oldAcc.Active__c != acc.Active__c &&
+             !RecursionHandler.processedAccountIds.contains(acc.Id)){
+                accountIds.add(acc.Id);
+                RecursionHandler.processedAccountIds.add(acc.Id);
+            }
+        }
+
+        List<Contact> contactsToUpdate = [select Id, AccountId, Active__c from Contact
+                                        where AccountId IN : accountIds];
+        for(Contact con : contactsToUpdate){
+            con.Active__c = newMap.get(con.AccountId).Active__c ; 
+            RecursionHandler.processedContactIds.add(con.Id);   
+        }
+        if(!contactsToUpdate.isEmpty()){
+            update contactsToUpdate;
+        }
+    }
 }
