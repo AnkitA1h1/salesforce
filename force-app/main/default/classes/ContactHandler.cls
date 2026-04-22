@@ -84,4 +84,31 @@ public with sharing class ContactHandler {
         }
         
     }
+
+    public static void preventDublicateContactsWithSameEmail(List<Contact> listContact){
+        Set<String> emailsList = new Set<String>();
+
+        for(Contact con : listContact){
+            if(con.Email != null){
+                emailsList.add(con.Email);
+            }
+        }
+
+        List<AggregateResult> result = [Select Email, COUNT(Id) emailCount from Contact
+                                        where Email IN: emailsList
+                                        group by Email
+                                        having COUNT(Id) >0];
+
+        Set<String> duplicateEmails = new Set<String>();
+
+        for(AggregateResult ar : result){
+            duplicateEmails.add((String)ar.get('Email'));
+        }
+
+        for(Contact con : listContact){
+            if(duplicateEmails.contains(con.Email)){
+                con.Email.addError('Duplicate email found: ' + con.Email);
+            }
+        }
+    }
 }
